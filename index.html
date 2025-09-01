@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Duración Musical Pro</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            padding: 0.2rem; /* Even more reduced padding for mobile */
+            box-sizing: border-box;
+            overflow-y: auto; /* Allow scrolling if content is slightly larger than screen */
+        }
+        .calculator-card {
+            background-color: #ffffff;
+            border-radius: 1.25rem; /* Slightly less rounded corners to save space */
+            box-shadow: 0 15px 20px -3px rgba(0, 0, 0, 0.1), 0 8px 8px -4px rgba(0, 0, 0, 0.04); /* Slightly smaller shadow */
+            padding: 0.8rem; /* Reduced padding inside the card */
+            max-width: 98%; /* Keep max-width for better use of space */
+            width: 450px; /* Slightly smaller max width for desktop */
+            text-align: center;
+            border: 1px solid #e5e7eb; /* Subtle border */
+            display: flex; /* Use flexbox for vertical layout */
+            flex-direction: column;
+            justify-content: space-between; /* Distribute space */
+            flex-shrink: 0; /* Prevent shrinking */
+            position: relative; /* For notification positioning */
+        }
+        @media (min-width: 768px) { /* Adjust padding for larger screens */
+            .calculator-card {
+                padding: 1.25rem;
+            }
+        }
+        .input-group label {
+            display: block;
+            text-align: left;
+            margin-bottom: 0.1rem; /* Further reduced margin-bottom */
+            font-weight: 500;
+            color: #334155; /* Darker text for labels */
+            font-size: 0.85rem; /* Smaller font for labels */
+        }
+        .input-group input { /* Apply to all input types */
+            width: 100%;
+            padding: 0.4rem 0.6rem; /* Further reduced padding for input fields */
+            border: 1px solid #d1d5db; /* Light gray border */
+            border-radius: 0.5rem; /* Slightly less rounded input fields */
+            font-size: 0.85rem; /* Smaller font for input */
+            color: #1f2937; /* Dark text for input */
+            background-color: #ffffff; /* White background for input */
+            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s, color 0.2s; /* Added color transition */
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #10b981; /* Emerald focus border */
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); /* Light emerald shadow on focus */
+        }
+        .input-group input:disabled {
+            background-color: #f3f4f6; /* Lighter background for disabled input */
+            color: #6b7280; /* Grayer text for disabled input */
+            cursor: not-allowed;
+        }
+
+        /* Style for active input fields (where user should type) */
+        .active-input {
+            background-color: #e6f7ff; /* Very light blue */
+            border-color: #91d5ff; /* Light blue border */
+        }
+
+        /* New style for highlighted result text */
+        .input-result {
+            color: #ff0000; /* Intense Red color for results */
+            font-weight: 700;
+        }
+
+        /* Styling for the selectable boxes (radio buttons) */
+        .radio-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.4rem; /* Further reduced padding */
+            border: 2px solid #d1d5db;
+            border-radius: 0.5rem; /* Slightly less rounded */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            background-color: #ffffff;
+            color: #4b5563;
+            font-weight: 500;
+            text-align: center;
+            min-height: 50px; /* Reduced min-height */
+            font-size: 0.85rem; /* Smaller font */
+        }
+        .radio-option:hover {
+            border-color: #6ee7b7; /* Lighter emerald on hover */
+            background-color: #ecfdf5; /* Very light emerald background */
+        }
+        .radio-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .radio-option input[type="radio"]:checked + .radio-label {
+            border-color: #10b981;
+            background-color: #ecfdf5;
+            color: #065f46;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+        }
+        .radio-label {
+            display: block;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+
+        .btn-primary {
+            background-image: linear-gradient(to right, #10b981, #14b8a6);
+            color: white;
+            padding: 0.5rem 0.9rem; /* Reduced padding */
+            border-radius: 0.5rem; /* Slightly less rounded */
+            font-weight: 600;
+            font-size: 0.9rem; /* Slightly smaller font */
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background-image: linear-gradient(to right, #059669, #0d9488);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background-color: #ef4444;
+            color: white;
+            padding: 0.5rem 0.9rem; /* Reduced padding */
+            border-radius: 0.5rem; /* Slightly less rounded */
+            font-weight: 600;
+            font-size: 0.9rem; /* Slightly smaller font */
+            transition: background-color 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+            margin-top: 0.4rem; /* Reduced margin-top */
+        }
+        .btn-secondary:hover {
+            background-color: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .btn-secondary:active {
+            transform: translateY(0);
+            box-shadow: 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-weight: 500;
+            margin-top: 0.3rem; /* Reduced margin-top */
+            text-align: left;
+            font-size: 0.8rem; /* Smaller font for error messages */
+        }
+        .attribution {
+            margin-top: 0.6rem; /* Reduced margin-top for attribution */
+            font-size: 0.8rem; /* Slightly smaller font size for attribution */
+            color: #334155;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        /* Styles for the tutorial section (step-by-step) */
+        #tutorialSection {
+            background-color: #f0fdf4;
+            border-radius: 0.75rem;
+            margin-top: 0.6rem; /* Reduced margin-top */
+            padding: 0.4rem 0.6rem; /* Reduced padding for tutorial content */
+            border: 1px solid #d1fae5;
+            text-align: left;
+            display: none;
+        }
+        #tutorialSection.active {
+            display: block;
+        }
+        .tutorial-step {
+            display: none;
+        }
+        .tutorial-step.active {
+            display: block;
+        }
+        #tutorialSection h3 {
+            font-size: 0.9rem; /* Smaller for conciseness */
+            font-weight: 600;
+            color: #065f46;
+            margin-top: 0.4rem; /* Reduced margin */
+            margin-bottom: 0.2rem; /* Reduced margin */
+            text-align: left;
+        }
+        #tutorialSection p {
+            font-size: 0.75rem; /* Even smaller font for tutorial body */
+            color: #1f2937;
+            margin-bottom: 0.2rem; /* Reduced margin */
+            line-height: 1.2;
+        }
+        #tutorialSection strong {
+            font-weight: 700;
+        }
+        .tutorial-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.4rem; /* Reduced margin */
+        }
+        .tutorial-navigation button {
+            background-color: #34d399;
+            color: white;
+            padding: 0.25rem 0.5rem; /* Reduced padding */
+            border-radius: 0.3rem; /* Slightly less rounded */
+            font-weight: 500;
+            font-size: 0.75rem; /* Smaller font */
+            transition: background-color 0.2s ease-in-out;
+            border: none;
+            cursor: pointer;
+        }
+        .tutorial-navigation button:hover:not(:disabled) {
+            background-color: #10b981;
+        }
+        .tutorial-navigation button:disabled {
+            background-color: #a7f3d0;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .tutorial-toggle-btn {
+            background-color: #34d399;
+            color: white;
+            padding: 0.4rem 0.7rem; /* Reduced padding */
+            border-radius: 0.5rem; /* Slightly less rounded */
+            font-weight: 500;
+            font-size: 0.85rem; /* Slightly smaller font */
+            transition: background-color 0.2s ease-in-out;
+            margin-top: 0.6rem; /* Reduced margin */
+            width: 100%;
+            border: none;
+            cursor: pointer;
+        }
+        .tutorial-toggle-btn:hover {
+            background-color: #10b981;
+        }
+
+        /* Highlight effect for elements */
+        .highlight-element {
+            border-color: #ffc107 !important;
+            box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.4) !important;
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Notification styles */
+        .notification {
+            position: absolute;
+            top: 0.8rem; /* Adjusted top */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.6rem 1rem; /* Reduced padding */
+            border-radius: 0.6rem; /* Reduced border-radius */
+            font-size: 0.9rem; /* Reduced font size */
+            font-weight: 600;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2); /* Smaller shadow */
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out, top 0.5s ease-in-out;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+        .notification.show {
+            opacity: 1;
+            top: 1.2rem; /* Slide down slightly when shown */
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-card">
+        <h1 class="text-xl font-bold text-gray-800 mb-2">Duración Musical Pro</h1> <!-- Reduced mb -->
+
+        <div class="input-group mb-2" id="pulsosPorCompasGroup"> <!-- Reduced mb -->
+            <label for="pulsosPorCompas" class="text-sm">Pulsos por compás:</label>
+            <input type="number" id="pulsosPorCompas" placeholder="Ej. 4" class="text-center" value="4" min="1" step="1">
+        </div>
+
+        <div class="radio-group mb-2 text-left" id="calcTypeGroup"> <!-- Reduced mb -->
+            <p class="font-medium text-gray-700 mb-1 text-sm">¿Qué quieres calcular?</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-1">
+                <label class="radio-option" id="calcCompasesLabel">
+                    <input type="radio" id="calcCompases" name="calcType" value="compases" class="peer" checked>
+                    <span class="radio-label">Total de compases</span>
+                </label>
+                <label class="radio-option" id="calcMinutosLabel">
+                    <input type="radio" id="calcMinutos" name="calcType" value="minutos" class="peer">
+                    <span class="radio-label">Total de minutos</span>
+                </label>
+                <label class="radio-option" id="calcBPM" name="calcType" value="bpm" class="peer">
+                    <span class="radio-label">BPM</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-1 mb-2" id="inputFieldsGroup"> <!-- Reduced gap and mb -->
+            <div class="input-group">
+                <label for="totalCompases">Total de compases:</label>
+                <input type="number" id="totalCompases" placeholder="Ej. 100" min="0" step="1">
+            </div>
+            <div class="input-group">
+                <label for="totalMinutos">Total de minutos:</label>
+                <input type="text" id="totalMinutos" placeholder="Ej. 5:30, 5.30 o 65">
+            </div>
+            <div class="input-group">
+                <label for="bpm">BPM:</label>
+                <input type="number" id="bpm" placeholder="Ej. 120" min="0" step="1">
+            </div>
+        </div>
+        
+        <!-- Golden Ratio Box -->
+        <div class="input-group mb-2" id="goldenRatioGroup">
+            <label for="goldenRatioResult" class="text-sm">Proporción Áurea (punto de clímax):</label>
+            <input type="text" id="goldenRatioResult" class="text-center input-result" readonly value="">
+        </div>
+
+        <button id="calculateBtn" class="btn-primary w-full">Calcular</button>
+        <button id="clearBtn" class="btn-secondary w-full">Borrar</button>
+
+        <div id="errorMessage" class="error-message hidden"></div>
+
+        <div class="attribution">
+            Realizado por Juan Miguel Ríos Redondo
+        </div>
+
+        <button id="toggleTutorialBtn" class="tutorial-toggle-btn">Iniciar Tutorial</button>
+
+        <div id="tutorialSection">
+            <div class="tutorial-step" id="step1" data-target-id="pulsosPorCompasGroup">
+                <h3>Paso 1: Pulsos por compás</h3>
+                <p>Define cuántos pulsos hay en cada compás (ej. 4 para 4/4).</p>
+            </div>
+            <div class="tutorial-step" id="step2" data-target-id="calcTypeGroup">
+                <h3>Paso 2: ¿Qué quieres calcular?</h3>
+                <p>Elige el valor a obtener. El campo correspondiente se deshabilitará.</p>
+            </div>
+            <div class="tutorial-step" id="step3" data-target-id="calcCompasesLabel">
+                <h3>Paso 3: Calcular Compases</h3>
+                <p>Si eliges esta opción, ingresa Minutos y BPM.</p>
+            </div>
+            <div class="tutorial-step" id="step4" data-target-id="calcMinutosLabel">
+                <h3>Paso 4: Calcular Minutos</h3>
+                <p>Si eliges esta opción, ingresa Compases y BPM.</p>
+            </div>
+            <div class="tutorial-step" id="step5" data-target-id="calcBPMLabel">
+                <h3>Paso 5: Calcular BPM</h3>
+                <p>Si eliges esta opción, ingresa Compases y Minutos.</p>
+            </div>
+            <div class="tutorial-step" id="step6" data-target-id="totalCompases">
+                <h3>Paso 6: Campos de Entrada</h3>
+                <p>Ingresa el <strong>Total de Compases</strong> (número entero, no negativo).</p>
+            </div>
+            <div class="tutorial-step" id="step7" data-target-id="totalMinutos">
+                <h3>Paso 7: Campos de Entrada</h3>
+                <p>Ingresa el <strong>Total de minutos</strong>. Puedes usar <code>MM:SS</code>, <code>MM,SS</code>, <code>MM.SS</code> o solo <code>MM</code> (ej. 5:30, 65).</p>
+            </div>
+            <div class="tutorial-step" id="step8" data-target-id="bpm">
+                <h3>Paso 8: Campos de Entrada</h3>
+                <p>Ingresa el <strong>BPM</strong> (número entero positivo).</p>
+            </div>
+            <div class="tutorial-step" id="step9" data-target-id="calculateBtn">
+                <h3>Paso 9: Calcular</h3>
+                <p>Haz clic para ver el resultado.</p>
+            </div>
+            <div class="tutorial-step" id="step10" data-target-id="errorMessage">
+                <h3>Paso 10: Errores</h3>
+                <p>Aquí verás mensajes en rojo si hay problemas con tus datos.</p>
+            </div>
+            <div class="tutorial-step" id="step11" data-target-id="inputFieldsGroup">
+                <h3>Paso 11: Resultado</h3>
+                <p>Aparece en el campo correspondiente, resaltado.</p>
+            </div>
+            <div class="tutorial-step" id="step12" data-target-id="clearBtn">
+                <h3>Paso 12: Borrar</h3>
+                <p>Haz clic aquí para limpiar todos los campos y empezar un nuevo cálculo.</p>
+            </div>
+            <div class="tutorial-step" id="step13">
+                <h3>Paso 13: La Proporción Áurea</h3>
+                <p>La proporción áurea es un principio de diseño natural que crea un sentido de belleza y equilibrio. En música, se puede usar para colocar el <strong>punto de clímax</strong> o la parte más intensa de la canción. Esta aplicación lo calcula multiplicando el <strong>Total de compases</strong> por <strong>0.618</strong>, y redondeando al compás entero más cercano.</p>
+            </div>
+            <div class="tutorial-step" id="step14">
+                <h3>¡Listo!</h3>
+                <p>¡Disfruta tu calculadora musical!</p>
+            </div>
+
+            <div class="tutorial-navigation">
+                <button id="prevStepBtn" disabled>Anterior</button>
+                <button id="nextStepBtn">Siguiente</button>
+            </div>
+        </div>
+        <!-- Notification Element -->
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const pulsosPorCompasInput = document.getElementById('pulsosPorCompas');
+        const totalCompasesInput = document.getElementById('totalCompases');
+        const totalMinutosInput = document.getElementById('totalMinutos');
+        const bpmInput = document.getElementById('bpm');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const errorMessageDiv = document.getElementById('errorMessage');
+        const radioButtons = document.querySelectorAll('input[name="calcType"]');
+        const toggleTutorialBtn = document.getElementById('toggleTutorialBtn');
+        const tutorialSection = document.getElementById('tutorialSection');
+        const prevStepBtn = document.getElementById('prevStepBtn');
+        const nextStepBtn = document.getElementById('nextStepBtn');
+        const tutorialSteps = document.querySelectorAll('.tutorial-step');
+        const notificationElement = document.getElementById('notification');
+        const goldenRatioResultInput = document.getElementById('goldenRatioResult');
+
+        // Map calculation types to their corresponding input elements
+        const inputMap = {
+            compases: totalCompasesInput,
+            minutos: totalMinutosInput,
+            bpm: bpmInput
+        };
+
+        // Get groups for highlighting
+        const pulsosPorCompasGroup = document.getElementById('pulsosPorCompasGroup');
+        const calcTypeGroup = document.getElementById('calcTypeGroup');
+        const inputFieldsGroup = document.getElementById('inputFieldsGroup');
+        const calcCompasesLabel = document.getElementById('calcCompasesLabel');
+        const calcMinutosLabel = document.getElementById('calcMinutosLabel');
+        const calcBPMLabel = document.getElementById('calcBPMLabel');
+        const clearBtnElement = document.getElementById('clearBtn');
+        const goldenRatioGroup = document.getElementById('goldenRatioGroup');
+
+
+        // Map tutorial target IDs to their actual DOM elements
+        const tutorialTargetElements = {
+            pulsosPorCompasGroup: pulsosPorCompasGroup,
+            calcTypeGroup: calcTypeGroup,
+            calcCompasesLabel: calcCompasesLabel,
+            calcMinutosLabel: calcMinutosLabel,
+            calcBPMLabel: calcBPMLabel,
+            inputFieldsGroup: inputFieldsGroup,
+            totalCompases: totalCompasesInput,
+            totalMinutos: totalMinutosInput,
+            bpm: bpmInput,
+            calculateBtn: calculateBtn,
+            errorMessage: errorMessageDiv,
+            clearBtn: clearBtnElement
+        };
+
+        let currentTutorialStepIndex = 0;
+        let currentHighlightedElement = null;
+
+        /**
+         * Displays an error message to the user.
+         * @param {string} message - The error message to display.
+         */
+        function displayError(message) {
+            errorMessageDiv.textContent = message;
+            errorMessageDiv.classList.remove('hidden');
+            hideNotification();
+        }
+
+        /**
+         * Clears any displayed error messages.
+         */
+        function clearError() {
+            errorMessageDiv.classList.add('hidden');
+            errorMessageDiv.textContent = '';
+        }
+
+        /**
+         * Displays a temporary notification with the result.
+         * @param {string} message - The message to display in the notification.
+         */
+        function showNotification(message) {
+            notificationElement.textContent = message;
+            notificationElement.classList.add('show');
+            setTimeout(() => {
+                notificationElement.classList.remove('show');
+            }, 3000);
+        }
+
+        /**
+         * Hides the notification.
+         */
+        function hideNotification() {
+            notificationElement.classList.remove('show');
+        }
+
+        /**
+         * Resets all input fields and enables them, removing result highlighting.
+         * Also resets radio button selection and applies active-input class.
+         */
+        function resetInputFields() {
+            // Remove highlighting class from all inputs
+            totalCompasesInput.classList.remove('input-result');
+            totalMinutosInput.classList.remove('input-result');
+            bpmInput.classList.remove('input-result');
+
+            pulsosPorCompasInput.value = '4';
+            totalCompasesInput.value = '';
+            totalMinutosInput.value = '';
+            bpmInput.value = '';
+            goldenRatioResultInput.value = ''; // Reset golden ratio field to empty
+
+            // Enable all fields initially
+            totalCompasesInput.disabled = false;
+            totalMinutosInput.disabled = false;
+            bpmInput.disabled = false;
+
+            // Remove active-input class from all fields
+            totalCompasesInput.classList.remove('active-input');
+            totalMinutosInput.classList.remove('active-input');
+            bpmInput.classList.remove('active-input');
+
+            // Reset radio button selection to default
+            document.getElementById('calcCompases').checked = true;
+
+            // Apply disabled and active-input classes based on default selection
+            totalCompasesInput.disabled = true; // 'Total de compases' is the default calculated field
+            totalMinutosInput.classList.add('active-input'); // 'Total de minutos' is an active input
+            bpmInput.classList.add('active-input'); // 'BPM' is an active input
+
+            clearError();
+            hideNotification();
+        }
+
+        /**
+         * Parses a time string (MM:SS, MM,SS, MM.SS or MM) into total seconds.
+         * This function is now used for the 'text' type input.
+         * @param {string} timeString - The time string to parse.
+         * @returns {number|NaN} Total seconds or NaN if invalid format.
+         */
+        function parseTimeInput(timeString) {
+            timeString = timeString.trim();
+            if (timeString === '') {
+                return NaN; // Empty string is invalid
+            }
+
+            // Replace comma and period with colon for consistent splitting
+            timeString = timeString.replace(/[,.]/g, ':');
+            const parts = timeString.split(':');
+
+            let totalSeconds = 0;
+
+            if (parts.length === 1) {
+                // Assume it's just minutes, convert to seconds
+                const minutes = parseInt(parts[0], 10);
+                if (!isNaN(minutes) && minutes >= 0) {
+                    totalSeconds = minutes * 60;
+                } else {
+                    return NaN; // Not a valid number
+                }
+            } else if (parts.length === 2) {
+                // Assume it's MM:SS
+                const minutes = parseInt(parts[0], 10);
+                const seconds = parseInt(parts[1], 10);
+                if (!isNaN(minutes) && !isNaN(seconds) && minutes >= 0 && seconds >= 0 && seconds < 60) {
+                    totalSeconds = (minutes * 60) + seconds;
+                } else {
+                    return NaN; // Not valid numbers or seconds out of range
+                }
+            } else {
+                return NaN; // Invalid number of parts
+            }
+
+            return totalSeconds;
+        }
+
+        /**
+         * Formats total seconds into an "MM:SS" string.
+         * @param {number} totalSeconds - The total number of seconds.
+         * @returns {string} The formatted time string "MM:SS".
+         */
+        function formatSecondsToMMSS(totalSeconds) {
+            if (isNaN(totalSeconds) || totalSeconds < 0) {
+                return "00:00";
+            }
+
+            totalSeconds = Math.round(totalSeconds);
+
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+
+            const paddedMinutes = String(minutes).padStart(2, '0');
+            const paddedSeconds = String(seconds).padStart(2, '0');
+            return `${paddedMinutes}:${paddedSeconds}`;
+        }
+
+
+        /**
+         * Handles the change event for the radio buttons.
+         * Disables the selected input field and applies active-input to others.
+         */
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', () => {
+                clearError();
+                hideNotification();
+
+                // Enable all fields and remove active-input class first
+                totalCompasesInput.disabled = false;
+                totalMinutosInput.disabled = false;
+                bpmInput.disabled = false;
+                totalCompasesInput.classList.remove('active-input');
+                totalMinutosInput.classList.remove('active-input');
+                bpmInput.classList.remove('active-input');
+
+                const selectedCalcType = document.querySelector('input[name="calcType"]:checked').value;
+
+                // Disable the selected output field and mark others as active inputs
+                if (selectedCalcType === 'compases') {
+                    totalCompasesInput.disabled = true;
+                    totalMinutosInput.classList.add('active-input');
+                    bpmInput.classList.add('active-input');
+                } else if (selectedCalcType === 'minutos') {
+                    totalMinutosInput.disabled = true;
+                    totalCompasesInput.classList.add('active-input');
+                    bpmInput.classList.add('active-input');
+                } else if (selectedCalcType === 'bpm') {
+                    bpmInput.disabled = true;
+                    totalCompasesInput.classList.add('active-input');
+                    totalMinutosInput.classList.add('active-input');
+                }
+            });
+        });
+
+        // Initialize disabled state and active-input classes on load based on default checked radio
+        window.onload = function() {
+            resetInputFields(); // Call reset to set initial state correctly
+        };
+
+        /**
+         * Handles the calculation logic when the button is clicked.
+         */
+        calculateBtn.addEventListener('click', () => {
+            clearError();
+            hideNotification();
+            // Remove highlighting from previously calculated result before new calculation
+            totalCompasesInput.classList.remove('input-result');
+            totalMinutosInput.classList.remove('input-result');
+            bpmInput.classList.remove('input-result');
+
+
+            const pulsosPorCompas = parseInt(pulsosPorCompasInput.value, 10);
+            const totalMinutosString = totalMinutosInput.value;
+            const bpm = parseInt(bpmInput.value, 10);
+
+            let totalCompases = parseInt(totalCompasesInput.value, 10);
+            let totalSegundos;
+
+            const selectedCalcType = document.querySelector('input[name="calcType"]:checked').value;
+
+            // --- Input Validations ---
+            if (isNaN(pulsosPorCompas) || pulsosPorCompas <= 0) {
+                displayError('Error: "Pulsos por compás" debe ser un número entero positivo.');
+                return;
+            }
+
+            if (selectedCalcType === 'compases' || selectedCalcType === 'bpm') {
+                totalSegundos = parseTimeInput(totalMinutosString);
+                if (isNaN(totalSegundos)) {
+                    displayError('Error: Formato de "Total de minutos" incorrecto. Usa MM:SS, MM,SS, MM.SS o solo MM. Ej: 5:30, 5,30, 5.30 o 65.');
+                    return;
+                }
+                if (totalSegundos < 0) {
+                    displayError('Error: "Total de minutos" no puede ser negativo.');
+                    return;
+                }
+            }
+
+            if (selectedCalcType === 'minutos' || selectedCalcType === 'bpm') {
+                if (isNaN(totalCompases) || totalCompases < 0) {
+                    displayError('Error: "Total de compases" debe ser un número entero no negativo.');
+                    return;
+                }
+            }
+
+            if (selectedCalcType === 'compases' || selectedCalcType === 'minutos') {
+                if (isNaN(bpm) || bpm <= 0) {
+                    displayError('Error: "BPM" debe ser un número entero positivo.');
+                    return;
+                }
+            }
+
+            // --- Calculation Logic ---
+            let result;
+            let targetInput;
+            let resultTextForNotification = "";
+
+            switch (selectedCalcType) {
+                case 'compases':
+                    targetInput = totalCompasesInput;
+                    if (bpm === 0) {
+                        displayError('Error: El "BPM" no puede ser cero para calcular compases.');
+                        return;
+                    }
+                    result = Math.round((totalSegundos / 60 * bpm) / pulsosPorCompas);
+                    totalCompases = result; // Update totalCompases for golden ratio calculation
+                    resultTextForNotification = `Total de Compases: ${result}`;
+                    break;
+
+                case 'minutos':
+                    targetInput = totalMinutosInput;
+                    if (bpm === 0) {
+                        displayError('Error: El "BPM" no puede ser cero para calcular minutos.');
+                        return;
+                    }
+                    const totalPulsosForMinutes = totalCompases * pulsosPorCompas;
+                    result = formatSecondsToMMSS((totalPulsosForMinutes / bpm) * 60);
+                    resultTextForNotification = `Total de Minutos: ${result}`;
+                    break;
+
+                case 'bpm':
+                    targetInput = bpmInput;
+                    if (totalSegundos === 0) {
+                        displayError('Error: El "Total de minutos" no puede ser cero para calcular el BPM.');
+                        return;
+                    }
+                    const totalPulsosForBPM = totalCompases * pulsosPorCompas;
+                    result = Math.round((totalPulsosForBPM / totalSegundos) * 60);
+                    resultTextForNotification = `BPM: ${result}`;
+                    break;
+
+                default:
+                    displayError('Error: Selecciona qué valor quieres calcular.');
+                    return;
+            }
+
+            // Calculate and display Golden Ratio
+            if (totalCompases !== undefined && !isNaN(totalCompases) && totalCompases > 0) {
+                const goldenRatioValue = Math.round(totalCompases * 0.618);
+                goldenRatioResultInput.value = goldenRatioValue;
+            } else {
+                goldenRatioResultInput.value = '';
+            }
+
+
+            // Display the result in the target input field and add highlighting class
+            if (targetInput) {
+                targetInput.value = result;
+                targetInput.classList.add('input-result');
+                showNotification(`¡Cálculo Exitoso! ${resultTextForNotification}`);
+            }
+        });
+
+        // --- Tutorial Specific Functions ---
+
+        /**
+         * Shows a specific tutorial step and hides others.
+         * Also handles highlighting the corresponding element and updating navigation buttons.
+         * @param {number} index - The index of the step to show.
+         */
+        function showTutorialStep(index) {
+            // Hide all steps
+            tutorialSteps.forEach(step => step.classList.remove('active'));
+
+            // Show the current step
+            if (tutorialSteps[index]) {
+                tutorialSteps[index].classList.add('active');
+
+                // Remove previous highlight
+                if (currentHighlightedElement) {
+                    currentHighlightedElement.classList.remove('highlight-element');
+                    currentHighlightedElement = null;
+                }
+
+                // Add highlight to the target element for the current step
+                const targetId = tutorialSteps[index].dataset.targetId;
+                if (targetId && tutorialTargetElements[targetId]) {
+                    const targetElement = tutorialTargetElements[targetId];
+                    targetElement.classList.add('highlight-element');
+                    currentHighlightedElement = targetElement;
+                }
+            }
+
+            // Update navigation buttons
+            prevStepBtn.disabled = (index === 0);
+            nextStepBtn.disabled = (index === tutorialSteps.length - 1);
+        }
+
+        /**
+         * Starts or ends the tutorial.
+         */
+        toggleTutorialBtn.addEventListener('click', () => {
+            const isTutorialActive = tutorialSection.classList.contains('active');
+
+            if (isTutorialActive) {
+                // End tutorial
+                tutorialSection.classList.remove('active');
+                toggleTutorialBtn.textContent = 'Iniciar Tutorial';
+                if (currentHighlightedElement) {
+                    currentHighlightedElement.classList.remove('highlight-element');
+                    currentHighlightedElement = null;
+                }
+                // Hide all steps when tutorial ends
+                tutorialSteps.forEach(step => step.classList.remove('active'));
+            } else {
+                // Start tutorial
+                tutorialSection.classList.add('active');
+                toggleTutorialBtn.textContent = 'Finalizar Tutorial';
+                currentTutorialStepIndex = 0; // Start from the first step
+                showTutorialStep(currentTutorialStepIndex);
+            }
+        });
+
+        // Navigation buttons for tutorial
+        prevStepBtn.addEventListener('click', () => {
+            if (currentTutorialStepIndex > 0) {
+                currentTutorialStepIndex--;
+                showTutorialStep(currentTutorialStepIndex);
+            }
+        });
+
+        nextStepBtn.addEventListener('click', () => {
+            if (currentTutorialStepIndex < tutorialSteps.length - 1) {
+                currentTutorialStepIndex++;
+                showTutorialStep(currentTutorialStepIndex);
+            }
+        });
+
+        // Event listener for the new Clear button
+        clearBtn.addEventListener('click', resetInputFields);
+    </script>
+</body>
+</html>
+
